@@ -165,9 +165,9 @@ export default async function handler(
       text: prompt,
     });
 
-    // Gemini API 엔드포인트 - v1beta API 사용 (무료 빠른 모드 지원)
-    // 무료 빠른 모드: gemini-1.5-flash 사용
-    const modelName = 'gemini-1.5-flash';
+    // Gemini API 엔드포인트 - v1beta API 사용
+    // Google API 기본값: gemini-pro 모델 사용 (가장 안정적)
+    const modelName = 'gemini-pro';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     
     console.log('Gemini API 호출:', { modelName, apiUrl: apiUrl.replace(apiKey, '***') });

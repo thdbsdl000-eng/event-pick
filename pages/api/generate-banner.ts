@@ -165,22 +165,24 @@ export default async function handler(
       text: prompt,
     });
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: parts,
-            },
-          ],
-        }),
-      }
-    );
+    // Gemini API 엔드포인트 - v1 API 사용 (더 안정적)
+    // 모델 옵션: gemini-1.5-pro-latest, gemini-1.5-flash-latest, gemini-pro
+    const modelName = 'gemini-1.5-pro-latest'; // 최신 안정 버전 사용
+    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: parts,
+          },
+        ],
+      }),
+    });
 
     if (!response.ok) {
       let errorMessage = 'Gemini API 호출에 실패했습니다.';

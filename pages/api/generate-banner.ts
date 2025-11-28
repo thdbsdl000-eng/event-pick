@@ -165,10 +165,12 @@ export default async function handler(
       text: prompt,
     });
 
-    // Gemini API 엔드포인트 - v1 API 사용 (더 안정적)
-    // 모델 옵션: gemini-1.5-pro-latest, gemini-1.5-flash-latest, gemini-pro
-    const modelName = 'gemini-1.5-pro-latest'; // 최신 안정 버전 사용
+    // Gemini API 엔드포인트 - v1 API 사용
+    // 무료 빠른 모드: gemini-1.5-flash 사용
+    const modelName = 'gemini-1.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+    
+    console.log('Gemini API 호출:', { modelName, apiUrl: apiUrl.replace(apiKey, '***') });
     
     const response = await fetch(apiUrl, {
       method: 'POST',

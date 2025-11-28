@@ -49,7 +49,19 @@ export default async function handler(
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' });
+      console.error('GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.');
+      console.error('현재 환경 변수:', Object.keys(process.env).filter(key => key.includes('GEMINI')));
+      return res.status(500).json({ 
+        error: 'API 키가 설정되지 않았습니다. Railway 대시보드에서 환경 변수를 확인해주세요.' 
+      });
+    }
+
+    // API 키 형식 확인 (기본 검증)
+    if (!apiKey.startsWith('AIza')) {
+      console.error('API 키 형식이 올바르지 않습니다.');
+      return res.status(500).json({ 
+        error: 'API 키 형식이 올바르지 않습니다.' 
+      });
     }
 
     // 프롬프트 템플릿 생성
@@ -171,9 +183,26 @@ export default async function handler(
     );
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API Error:', errorData);
-      return res.status(500).json({ error: 'Gemini API 호출에 실패했습니다.' });
+      let errorMessage = 'Gemini API 호출에 실패했습니다.';
+      try {
+        const errorData = await response.json();
+        console.error('Gemini API Error Response:', JSON.stringify(errorData, null, 2));
+        
+        // Gemini API의 구체적인 오류 메시지 추출
+        if (errorData.error) {
+          if (errorData.error.message) {
+            errorMessage = `Gemini API 오류: ${errorData.error.message}`;
+          } else if (errorData.error.status) {
+            errorMessage = `Gemini API 오류 (${errorData.error.status}): ${JSON.stringify(errorData.error)}`;
+          }
+        }
+      } catch (parseError) {
+        const errorText = await response.text();
+        console.error('Gemini API Error (text):', errorText);
+        errorMessage = `Gemini API 호출 실패 (${response.status}): ${errorText.substring(0, 200)}`;
+      }
+      
+      return res.status(500).json({ error: errorMessage });
     }
 
     const data = await response.json();
@@ -214,7 +243,11 @@ export default async function handler(
     return res.status(200).json(parsedData);
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    return res.status(500).json({ 
+      error: `서버 오류가 발생했습니다: ${errorMessage}` 
+    });
   }
 }
 
